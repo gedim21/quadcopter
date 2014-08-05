@@ -6,6 +6,7 @@
 #include <TFT.h>
 #include <SPI.h>
 #include "TaskScheduler.h"
+#include "logic.h"
 
 #define cs   10
 #define dc   9
@@ -35,16 +36,18 @@ void setup()
   
   tft.begin();
 
-  displayInfoText();
+  //displayInfoText();
 
   delay(2000);
-  tft.background(0, 0, 0);
+  //tft.background(0, 0, 0);
 }
 
 void process100HzTask()
 {
   hundredHZpreviousTime = currentTime;
   deltaTime = currentTime - hundredHZpreviousTime;
+  
+  f100HzTask(deltaTime);
 }
 
 void process50HzTask()
@@ -52,21 +55,23 @@ void process50HzTask()
   fiftyHZpreviousTime = currentTime;
   deltaTime = currentTime - fiftyHZpreviousTime;
 
-  updateLightSensor(fiftyHZpreviousTime);
+  f50HzTask(deltaTime);
 }
 
 void process10HzTask()
 {
   tenHZpreviousTime = currentTime;
   deltaTime = currentTime - tenHZpreviousTime;
+  
+  f10HzTask(deltaTime);
 }
 
 void process1HzTask()
 {
   oneHZpreviousTime = currentTime;
   deltaTime = currentTime - oneHZpreviousTime;
-
-  updateDisplay(deltaTime);
+  
+  f1HzTask(deltaTime);
 }
 
 void updateLightSensor(unsigned long dt)
