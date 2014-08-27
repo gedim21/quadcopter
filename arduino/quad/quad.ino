@@ -270,6 +270,15 @@ void displayMagValues()
   Serial.println(mz);
 }
 
+void serialMagValues()
+{
+  Serial.print("$$");
+  Serial.print(mx);
+  Serial.print(" ");
+  Serial.print(my);
+  Serial.print(" ");
+  Serial.println(mz);
+}
 void updateBarSensor(unsigned long dt)
 {
   barometer.setControl(BMP085_MODE_TEMPERATURE);
@@ -292,12 +301,13 @@ void displayBarValues()
   Serial.print(pressure);
   Serial.print("\t");
   Serial.println(altitude);
-
 }
 
 void updateDisplay(unsigned long dt)
 {
-  displaySensorInfo();
+  //displaySensorInfo();
+
+  serialMagValues();
 }
 
 void displaySensorInfo()
