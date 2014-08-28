@@ -55,11 +55,6 @@ float pressure;
 float altitude;
 int32_t lastBarReadingMicros;
 
-volatile bool mpuInterrupt = false;     // indicates whether MPU interrupt pin has gone high
-void dmpDataReady() {
-  mpuInterrupt = true;
-}
-
 void setup()
 {
   Serial.begin(9600);
@@ -68,40 +63,36 @@ void setup()
   TWBR = 24; // 400kHz I2C clock (200kHz if CPU is 8MHz)
 
   Serial.println(F("Initializing I2C devices..."));
+  initializeAccelGyro();
+  initializeMagnetometer();
+  initializeBarometer();
+}
+
+void initializeAccelGyro()
+{
+  Serial.println(F("Initializing Accelerometer and Gyroscope..."));
   mpu.initialize();
 
   // verify connection
-  Serial.println(F("Testing MPU6050 connections..."));
+  Serial.println(F("Testing MPU6050 connection..."));
   Serial.println(mpu.testConnection() ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
 
   // load and configure the DMP
-  Serial.println(F("Initializing DMP..."));
+  Serial.println(F("Initializing MPU6050 DMP..."));
   devStatus = mpu.dmpInitialize();
 
-  // supply your own gyro offsets here, scaled for min sensitivity
-  mpu.setXGyroOffset(220);
-  mpu.setYGyroOffset(76);
-  mpu.setZGyroOffset(-85);
-  mpu.setZAccelOffset(1788); // 1688 factory default for my test chip
-    
   // make sure it worked (returns 0 if so)
   if (devStatus == 0)
     {
+      // supply your own gyro offsets here, scaled for min sensitivity
+      mpu.setXGyroOffset(220);
+      mpu.setYGyroOffset(76);
+      mpu.setZGyroOffset(-85);
+      mpu.setZAccelOffset(1788); // 1688 factory default for my test chip
+  
       // turn on the DMP, now that it's ready
-      Serial.println(F("Enabling DMP..."));
+      Serial.println(F("Enabling MPU6050 DMP..."));
       mpu.setDMPEnabled(true);
-
-      Serial.println(F("Enabling Magnetometer..."));
-      mpu.setI2CBypassEnabled(true);
-      mag.initialize();
-
-      Serial.println("Testing HMC5883L connections...");
-      Serial.println(mag.testConnection() ? "HMC5883L connection successful" : "HMC5883L connection failed");
-
-      // enable Arduino interrupt detection
-      Serial.println(F("Enabling interrupt detection (Arduino external interrupt 0)..."));
-      attachInterrupt(0, dmpDataReady, RISING);
-      mpuIntStatus = mpu.getIntStatus();
 
       // set our DMP Ready flag so the main loop() function knows it's okay to use it
       Serial.println(F("DMP ready..."));
@@ -120,10 +111,23 @@ void setup()
       Serial.print(devStatus);
       Serial.println(F(")"));
     }
-  
+}
+
+void initializeMagnetometer()
+{
+  Serial.println(F("Initializing Magnetometer..."));
+  mpu.setI2CBypassEnabled(true);
+  mag.initialize();
+
+  Serial.println("Testing HMC5883L connection...");
+  Serial.println(mag.testConnection() ? "HMC5883L connection successful" : "HMC5883L connection failed");
+}
+
+void initializeBarometer()
+{
   Serial.println(F("Initializing Barometer..."));
   barometer.initialize();
-  Serial.println("Testing BMP085 connections...");
+  Serial.println("Testing BMP085 connection...");
   Serial.println(barometer.testConnection() ? "BMP085 connection successful" : "BMP085 connection failed");
 }
 
@@ -162,9 +166,8 @@ void updateGyroSensor(unsigned long dt)
 {
   if(dmpReady)
     {
-      if(mpuInterrupt || fifoCount > packetSize)
+      if(fifoCount > packetSize)
         {
-          mpuInterrupt = false;
           mpuIntStatus = mpu.getIntStatus();
           
           // get current FIFO count
@@ -175,8 +178,6 @@ void updateGyroSensor(unsigned long dt)
               // reset so we can continue cleanly
               mpu.resetFIFO();
               //Serial.println(F("FIFO overflow!"));
-              
-              // otherwise, check for DMP data ready interrupt (this should happen frequently)
             }
           else if (mpuIntStatus & 0x02)
             {
