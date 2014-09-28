@@ -65,6 +65,8 @@ void setup()
   initializeAccelGyro();
   initializeMagnetometer();
   initializeBarometer();
+  
+  initMotors();
 }
 
 void process100HzTask()
@@ -81,6 +83,7 @@ void process50HzTask()
   updateAccelGyroSensor(deltaTime);
   updateMagSensor(deltaTime);
   updateBarSensor(deltaTime);
+  
 }
 
 void process10HzTask()
@@ -94,7 +97,7 @@ void process1HzTask()
   oneHZpreviousTime = currentTime;
   deltaTime = currentTime - oneHZpreviousTime;
 
-  updateDisplay(deltaTime);
+  //updateDisplay(deltaTime);
 }
 
 
@@ -172,7 +175,7 @@ void updateDisplay(unsigned long dt)
 {
   //displaySensorInfo();
 
-  serialMagValues();
+  //serialMagValues();
 }
 
 void displaySensorInfo()
@@ -188,6 +191,7 @@ void displayInfoText()
 
 void loop()
 {
+  updateMotors();
   currentTime = micros();
   deltaTime = currentTime - previousTime;
 

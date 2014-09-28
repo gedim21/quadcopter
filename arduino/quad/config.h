@@ -5,6 +5,6 @@
 #define MOTOR3 9
 
 //Motor PWM Levels
-#define MOTOR_ZERO_LEVEL  125
-#define MOTOR_ARM_START  140
-#define MOTOR_MAX_LEVEL  254
+#define MOTOR_ARM_START  0
+#define MOTOR_ZERO_LEVEL 50
+#define MOTOR_MAX_LEVEL  130
